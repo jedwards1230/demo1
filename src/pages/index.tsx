@@ -1,10 +1,9 @@
-import { useAuth, useUser } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import Head from "next/head";
 import Link from "next/link";
 
 export default function Home() {
 	const { isSignedIn } = useUser();
-	const { signOut } = useAuth();
 
 	return (
 		<>
@@ -20,14 +19,10 @@ export default function Home() {
 				/>
 				<link rel="icon" href="/favicon.ico" />
 			</Head>
-			<main
-				className={`flex flex-col gap-y-8 w-full h-full items-center justify-center ${
-					isSignedIn ? "bg-green-300" : "bg-red-300"
-				}`}
-			>
+			<main className="flex flex-col gap-y-8 w-full h-full items-center justify-center">
 				<h1 className="text-6xl font-bold">Home Page</h1>
 				<div className="flex gap-x-8">
-					{!isSignedIn ? (
+					{!isSignedIn && (
 						<>
 							<Link
 								href="/sign-in"
@@ -41,15 +36,6 @@ export default function Home() {
 							>
 								Sign Up
 							</Link>
-						</>
-					) : (
-						<>
-							<div
-								onClick={() => signOut()}
-								className="text-2xl font-bold"
-							>
-								Sign Out
-							</div>
 						</>
 					)}
 				</div>
