@@ -1,18 +1,20 @@
-import { useSignUp } from "@clerk/nextjs";
+import { useSignUp, useUser } from "@clerk/nextjs";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 
 export default function SignUp() {
-	const [error, setError] = useState(null);
 	const { signUp, setSession } = useSignUp();
+	const { isSignedIn } = useUser();
+	const router = useRouter();
+
+	const [error, setError] = useState(null);
 	const [waitingForCode, setWaitingForCode] = useState(false);
 	const [oneTimeCode, setOneTimeCode] = useState("");
 	const [emailAddress, setEmailAddress] = useState("");
 	const [password, setPassword] = useState("");
 
 	const handleSubmit = async () => {
-		// Check response for next step
-		console.log("creating");
 		await signUp!
 			.create({
 				emailAddress,
@@ -23,7 +25,6 @@ export default function SignUp() {
 		// Prepare the verification process for the email address.
 		// This method will send a one-time code to the email address supplied to
 		// the current sign-up.
-		console.log("preparing");
 		await signUp!
 			.prepareEmailAddressVerification()
 			.catch((err) => setError(err.errors[0].message));
@@ -33,16 +34,20 @@ export default function SignUp() {
 	const handleCodeSubmit = async () => {
 		// Attempt to verify the email address by supplying the one-time code that
 		// was sent in the previous step.
-		console.log("attempting");
 		const response = await signUp!
 			.attemptEmailAddressVerification({
 				code: oneTimeCode,
 			})
 			.catch((err) => setError(err.errors[0].message));
 
-		console.log("setting session");
 		setSession!(response!.createdSessionId);
 	};
+
+	useEffect(() => {
+		if (isSignedIn) {
+			router.push("/");
+		}
+	}, [isSignedIn, router]);
 
 	return (
 		<div className="h-full flex gap-y-8 flex-col items-center justify-center">

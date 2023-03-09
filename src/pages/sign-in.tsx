@@ -1,28 +1,46 @@
-import { useSignIn } from "@clerk/nextjs";
+import { useSignIn, useUser } from "@clerk/nextjs";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/router";
+import { FormEvent, useEffect, useState } from "react";
 
 export default function SignIn() {
-	const [error, setError] = useState(null);
 	const { signIn, setSession } = useSignIn();
+	const { isSignedIn } = useUser();
+	const router = useRouter();
+
+	const [error, setError] = useState("");
 	const [emailAddress, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 
-	const handleSignIn = async () => {
-		const response = await signIn!
+	const handleSignIn = async (e: FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+
+		signIn!
 			.create({
 				identifier: emailAddress,
 				password,
 			})
-			.catch((err) => setError(err.errors[0].message));
-		setSession!(response!.createdSessionId);
+			.then((response) => {
+				console.log(response);
+				setSession!(response.createdSessionId);
+			})
+			.catch((err) => {
+				console.log(err);
+				setError("Invalid email or password.");
+			});
 	};
+
+	useEffect(() => {
+		if (isSignedIn) {
+			router.push("/");
+		}
+	}, [isSignedIn, router]);
 
 	return (
 		<div className="h-full flex gap-y-8 flex-col items-center justify-center">
 			<h1 className="text-6xl font-bold">Sign In</h1>
-			<div>{error}</div>
-			<div className="flex flex-col gap-y-2">
+			{error && <div>{error}</div>}
+			<form onSubmit={handleSignIn} className="flex flex-col gap-y-2">
 				<input
 					type="email"
 					placeholder="Email"
@@ -35,8 +53,8 @@ export default function SignIn() {
 				/>
 				<div className="flex justify-between">
 					<button
+						type="submit"
 						className="border-1 w-1/3 border border-black rounded-lg"
-						onClick={handleSignIn}
 					>
 						Submit
 					</button>
@@ -47,7 +65,7 @@ export default function SignIn() {
 						Go To Sign Up
 					</Link>
 				</div>
-			</div>
+			</form>
 		</div>
 	);
 }
